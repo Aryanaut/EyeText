@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/nuc/.virtualenvs/pygaze/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
+}
