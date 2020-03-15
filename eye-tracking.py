@@ -16,6 +16,7 @@ while(True):
         width = x+w
         height = y+h    
         cv2.rectangle(frame, (x,y), (width, height), color, thickness=stroke)
+        #cv2.circle(frame, (x, y), h, color, stroke)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xff == ord('q'):
