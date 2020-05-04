@@ -269,24 +269,11 @@ while True:
         if gaze_ratio_final <= 1:
             cv2.putText(frame, "RIGHT", (50, 100), font, 2, (0, 0, 255), 3)
             new_frame[:] = (0, 0, 255)
-            gaze_counter += 1
-            if gaze_counter == 10:
-                cv2.destroyWindow('left_keyboard')
-                cv2.imshow("right_keyboard", keyboard1)
-                playsound('Ding-sound-effect.mp3')
-                gaze_counter = 0
-
         elif 1 < gaze_ratio_final < 3:
             cv2.putText(frame, "CENTER", (50, 100), font, 2, (0, 0, 255), 3)
         else:
             cv2.putText(frame, "LEFT", (50, 100), font, 2, (0, 0, 255), 3)
             new_frame[:] = [255, 0, 0]
-            gaze_counter += 1
-            if gaze_counter == 10:
-                cv2.destroyWindow('right_keyboard')
-                cv2.imshow('left_keyboard', keyboard)
-                playsound('Ding-sound-effect.mp3')
-                gaze_counter = 0
         # showing direction
         #eye = cv2.resize(eye, None, fx=5, fy=5)
         #cv2.imshow("Eye", eye)
@@ -298,7 +285,7 @@ while True:
         
 
     #Letters
-    if frames == 40:
+    if frames == 20:
         #print("10", keys_set_1[letter_index])
         letter_index+=1
         frames = 0
@@ -315,8 +302,8 @@ while True:
 
     #What is shown
     cv2.imshow('frame', frame)
-    #cv2.imshow('direction', new_frame)
-    #cv2.imshow('left-keyboard', keyboard)
+    cv2.imshow('direction', new_frame)
+    cv2.imshow('left-keyboard', keyboard)
     cv2.imshow('board', board)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
