@@ -43,6 +43,7 @@ while True:
     frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray)
+    mask = np.zeros(frame.shape, dtype=np.uint8)
     #print(faces)
     rectangles = str(faces)
     #print(rectangles, type(rectangles))
@@ -83,12 +84,29 @@ while True:
             _, img = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
             keypoints = blob_process(img, blob_detector)
             coords = np.column_stack(np.where(img > 0))
+            """
+            for coord in coords:
+                mask[coord[0], coord[1]] = (0,0,255)
             print(coords)
+            #cv2.circle(eye, (cX, cY), 6, (0, 0, 255), -1)
+            """
+            
+            for keypoint in keypoints:
+                s = keypoint.size
+                x = keypoint.pt[0]
+                y = keypoint.pt[1]  
+                print(s, y, x)
+                cx = int(x)
+                cy = int(y)
+                cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
+            #print(keypoints)
             cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
 
         cv2.imshow('eye', eye)
+        #cv2.imshow('mask', mask)
     cv2.imshow('frame', frame)
+    #cv2.imshow('screen', screen)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
     
