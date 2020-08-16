@@ -3,6 +3,7 @@ import numpy as np
 import dlib
 import pyautogui
 import os
+import time
 
 def on_threshold(x):
     pass
@@ -10,6 +11,7 @@ def on_threshold(x):
 click = False
 # variable defenitions
 screen = np.zeros((1080, 1920, 3), np.uint8)
+error_msg = cv2.imread('/home/aryan/Documents/Python/EyeText/ver_2/err-msg.png')
 
 #changes directory to current
 os.chdir("/home/aryan/Documents/Python/EyeText/ver_2")
@@ -23,12 +25,22 @@ cv2.createTrackbar('threshold', 'frame', 0, 255, on_threshold)
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
+# callibration points
+points = {
+        1 : " ",
+        2 : " ",
+        3 : " ",
+        4 : " ",
+    }
+
 detector_params = cv2.SimpleBlobDetector_Params()
 detector_params.filterByColor = True
 detector_params.blobColor = 255
 #detector_params.filterByArea = True
 #detector_params.maxArea = 3000
 blob_detector = cv2.SimpleBlobDetector_create(detector_params)
+global point
+point = 1
 
 # defines the process that looks for blobs
 def blob_process(img, detection):
@@ -116,23 +128,36 @@ def irisCoord():
 
 def callibrate():
     eye, frame = irisCoord()
-    
+    coordinates = (cx, cy)
     g = str((cx, cy))
-    
-    if click == True:
-        cv2.putText(screen, g, (20, 540), cv2.FONT_HERSHEY_COMPLEX, 7, (255, 255, 255), 2)
-        print(g)
-    
-# cv2.putText(screen, "NOT DETECTED, ADJUST PARAMETERS", (200, 540), cv2.FONT_HERSHEY_COMPLEX, 9, (255, 255, 255), 2)
+    global point
 
-    
+    cv2.putText(screen, "UP", (900, 60), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+    cv2.putText(screen, "RIGHT", (1700, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+    cv2.putText(screen, "LEFT", (20, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+    cv2.putText(screen, "DOWN", (860, 1000), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+
+    if click == True:
+            points[point] = g
+            point = point+1
+            print(g)
+            if g == '(0, 0)':
+                pass
+                # cv2.putText(screen, "NOT DETECTED, ADJUST PARAMETERS", (200, 540), cv2.FONT_HERSHEY_COMPLEX, 9, (255, 255, 255), 2)
+                """
+                cv2.imshow('error', error_msg)
+                time.sleep(2)
+                cv2.destroyWindow('error')
+                """
+            if point > 4:
+                cv2.putText(screen, "DONE", (200, 540), cv2.FONT_HERSHEY_COMPLEX, 9, (255, 255, 255), 2)
+
     cv2.imshow('eye', eye)
     cv2.imshow('screen', screen)
     cv2.setMouseCallback('screen', click_pos)
     cv2.imshow('frame', frame)
 
 def main():
-    cv2.setMouseCallback('screen', click_pos)
     while True:
         #irisCoord()
         callibrate()
@@ -144,3 +169,4 @@ if __name__=='__main__':
 
 cap.release()
 cv2.destroyAllWindows()
+print(points)
