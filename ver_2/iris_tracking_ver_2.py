@@ -8,7 +8,7 @@ def on_threshold(x):
     pass
 
 #directory changing
-os.chdir("/home/aryan/Documents/Python/EyeText/ver_2")
+#os.chdir("/home/aryan/Documents/EyeText/ver_2")
 cap = cv2.VideoCapture(0)
 #cap.set(cv2.CAP_PROP_FPS, 60)
 cv2.namedWindow('frame')
