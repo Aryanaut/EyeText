@@ -128,8 +128,6 @@ def irisCoord():
                 cx = int(x)
                 cy = int(y)
                 cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
-            if len(keypoints) != 0:
-                cv2.putText(frame, 'IRIS DETECTED', (10, 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
             #print(keypoints)
             cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
@@ -189,7 +187,7 @@ def tracking():
     screen[0:eye.shape[0], 0:eye.shape[1]] = eye
     # cv2.imshow('frame', frame)
     # cv2.imshow('frame', stacked)
-    # cv2.imshow('windowEye', eye)
+    # cv2.imshow('windowEye', eyeqQ)
     cv2.imshow('screen', screen)
 
 def main():
