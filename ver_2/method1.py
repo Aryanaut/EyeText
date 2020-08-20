@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import dlib
-import pyautogui
+# import pyautogui
 import os
 import time
 
@@ -10,19 +10,16 @@ def on_threshold(x):
 
 click = False
 # variable defenitions
-screenWidth, screenHeight = pyautogui.size()
-midPtY, midPtX = int(screenHeight/2), int(screenWidth/2)
-screen = np.zeros((screenHeight, screenWidth, 3), np.uint8)
+screen = np.zeros((1080, 1920, 3), np.uint8)
 error_msg = cv2.imread('/home/aryan/Documents/Python/EyeText/ver_2/err-msg.png')
 
 #changes directory to current
-dir = os.getcwd()
-os.chdir(dir)
+os.chdir("/home/aryan/Documents/Python/EyeText/ver_2")
 cap = cv2.VideoCapture(0)
 
-cv2.namedWindow('screen')
+cv2.namedWindow('frame')
 # creates trackbar
-cv2.createTrackbar('threshold', 'screen', 0, 255, on_threshold)
+cv2.createTrackbar('threshold', 'frame', 0, 255, on_threshold)
 
 # blob detector and shape predictor
 detector = dlib.get_frontal_face_detector()
@@ -36,11 +33,8 @@ points = {
         4 : (0, 0),
     }
 
-cx, cy = 0, 0
-
 global point
 point = 1
-
 global callibrationStatus
 callibrationStatus = False
 
@@ -73,7 +67,7 @@ def midpoint(p1 ,p2):
 # function to find the iris
 def irisCoord():
     _, frame = cap.read()
-    frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
+    # frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
     # frame = cv2.resize(frame, (100, 100))
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray)
@@ -111,15 +105,16 @@ def irisCoord():
             max_y = np.max(left_eye_region[:, 1])
 
             threshold = cv2.getTrackbarPos('threshold', 'frame')
-            
+
             eye = frame[min_y-1: max_y, min_x : max_x]
-            eye = cv2.resize(eye, None, fx=3, fy=3)
+            # eye = cv2.resize(eye, None, fx=3, fy=3)
             # eye = cv2.resize(eye, (100, 100))
             gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
             #gray_eye = cv2.GaussianBlur(gray_eye, (7, 7), 0)
             _, img = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
             keypoints = blob_process(img, blob_detector)
             global cx, cy
+            cx, cy = 0, 0
             for keypoint in keypoints:
                 s = keypoint.size
                 x = keypoint.pt[0]
@@ -128,8 +123,7 @@ def irisCoord():
                 cx = int(x)
                 cy = int(y)
                 cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
-            if len(keypoints) != 0:
-                cv2.putText(frame, 'IRIS DETECTED', (10, 40), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
+
             #print(keypoints)
             cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
@@ -185,11 +179,9 @@ def tracking():
 
     else:
         pass
-    screen[midPtY-240:midPtY+240, midPtX-320:midPtX+320] = frame
-    screen[0:eye.shape[0], 0:eye.shape[1]] = eye
+    # stacked = np.stack((frame, eye))
     # cv2.imshow('frame', frame)
-    # cv2.imshow('frame', stacked)
-    # cv2.imshow('windowEye', eye)
+    cv2.imshow('frame', frame)
     cv2.imshow('screen', screen)
 
 def main():
@@ -204,4 +196,4 @@ if __name__=='__main__':
 
 cap.release()
 cv2.destroyAllWindows()
-print(points)
+print(points) 
