@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import dlib
-# import pyautogui
+import pyautogui
 import os
 import time
 
@@ -10,7 +10,10 @@ def on_threshold(x):
 
 click = False
 # variable defenitions
-screen = np.zeros((1080, 1920, 3), np.uint8)
+screenW, screenH = pyautogui.size()
+midptX = int(screenW / 2)
+midptY = int(screenH / 2)
+screen = np.zeros((screenH, screenW, 3), np.uint8)
 error_msg = cv2.imread('/home/aryan/Documents/Python/EyeText/ver_2/err-msg.png')
 
 #changes directory to current
@@ -33,8 +36,12 @@ points = {
         4 : (0, 0),
     }
 
+global cx, cy
+cx, cy = 0, 0
+
 global point
 point = 1
+
 global callibrationStatus
 callibrationStatus = False
 
@@ -67,7 +74,7 @@ def midpoint(p1 ,p2):
 # function to find the iris
 def irisCoord():
     _, frame = cap.read()
-    # frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
+    frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
     # frame = cv2.resize(frame, (100, 100))
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = detector(gray)
@@ -107,14 +114,13 @@ def irisCoord():
             threshold = cv2.getTrackbarPos('threshold', 'frame')
 
             eye = frame[min_y-1: max_y, min_x : max_x]
-            # eye = cv2.resize(eye, None, fx=3, fy=3)
+            eye = cv2.resize(eye, None, fx=3, fy=3)
             # eye = cv2.resize(eye, (100, 100))
             gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
             #gray_eye = cv2.GaussianBlur(gray_eye, (7, 7), 0)
             _, img = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
             keypoints = blob_process(img, blob_detector)
             global cx, cy
-            cx, cy = 0, 0
             for keypoint in keypoints:
                 s = keypoint.size
                 x = keypoint.pt[0]
@@ -179,9 +185,11 @@ def tracking():
 
     else:
         pass
+    screen[midptY-240:midptY+240, midptX-320:midptX+320] = frame
     # stacked = np.stack((frame, eye))
     # cv2.imshow('frame', frame)
-    cv2.imshow('frame', frame)
+    # cv2.imshow('frame', frame)
+    cv2.imshow('windowEye', eye)
     cv2.imshow('screen', screen)
 
 def main():

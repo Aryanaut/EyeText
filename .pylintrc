@@ -579,3 +579,5 @@ valid-metaclass-classmethod-first-arg=cls
 # "BaseException, Exception".
 overgeneral-exceptions=BaseException,
                        Exception
+
+extension-pkg-whitelist=PyQt5
