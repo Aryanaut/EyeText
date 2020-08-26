@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSlider
+from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QLabel, QVBoxLayout, QBoxLayout, QPushButton, QSlider
 from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QThread
 import sys
@@ -17,17 +17,23 @@ class videoThread(QThread):
     def midpoint(self, p1 ,p2):
         return int((p1.x + p2.x)/2), int((p1.y + p2.y)/2)
 
+    def on_threshold(self, x):
+        pass
+
     def blob_process(self, img, detection):
         img = cv2.erode(img, None, iterations=2)
         img = cv2.dilate(img, None, iterations=30)
         img = cv2.medianBlur(img, 5)
         keypoints = detection.detect(img)
         return keypoints
-    
+
     def run(self):
         cap = cv2.VideoCapture(0)
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+        eyeFrame = np.zeros((150, 300, 3), np.uint8)
+        cv2.namedWindow('eyeWindow')
+        cv2.createTrackbar('threshold', 'eyeWindow', 0, 255, self.on_threshold)
         
         detector_params = cv2.SimpleBlobDetector_Params()
         detector_params.filterByColor = True
@@ -68,27 +74,31 @@ class videoThread(QThread):
                     max_x = np.max(left_eye_region[:, 0])
                     min_y = np.min(left_eye_region[:, 1])
                     max_y = np.max(left_eye_region[:, 1])
-                    global eye
+                    
                     eye = img[min_y-1: max_y, min_x : max_x]
                     eye = cv2.resize(eye, None, fx=3, fy=3)
                     gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
-                    global threshold
+                    threshold = cv2.getTrackbarPos('threshold', 'eyeWindow')
                     _, eyeImg = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
                     keypoints = self.blob_process(eyeImg, blob_detector)
+                    # print(keypoints)
                     for keypoint in keypoints:
                         s = keypoint.size
                         x = keypoint.pt[0]
                         y = keypoint.pt[1]
                         cx = int(x)
                         cy = int(y)
-                        cv2.circle(eye, (cx, cy), 5, (255, 0, 0), -1)
+                        cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
 
                     cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
                     cv2.polylines(img, [left_eye_region], True, (255, 0, 255), 2)
                 
+                # print(eye.shape)
+                ey, ex, ch = eye.shape
+                eyeFrame[0:ey, 0:ex] = eye
                 # cv2.imshow('eyeWindow', eye)
                 if toggle%2 == 1:
-                    cv2.imshow('eyeWindow', eye)
+                    cv2.imshow('eyeWindow', eyeFrame)
                 if toggle%2 == 0 & toggle !=0:
                     cv2.destroyWindow('eyeWindow')
             if ret:
@@ -103,6 +113,13 @@ class App(QWidget):
         self.height = 480
         self.setGeometry(10, 10, 1920, 1080)
         self.frameLabel = QLabel(self)
+        '''
+        self.left = QLabel('LEFT')
+        self.left.setGeometry(960, 20, 30, 15)
+        self.right = QLabel('RIGHT')
+        self.up = QLabel('UP')
+        self.down = QLabel('DOWN')
+        '''
         self.setStyleSheet('background-color: rgb(40, 40, 40); color: white')
         self.frameLabel.hide()
         self.uiStyle = 'background-color: rgb(70, 70, 70); border-radius:10px; border-color: beige; padding: 6px'
@@ -125,22 +142,14 @@ class App(QWidget):
         self.toggleEye.hide()
         self.toggleEye.setStyleSheet(self.uiStyle)
 
-        # slider
-        self.thresholdSlider = QSlider(Qt.Horizontal, self)
-        self.thresholdSlider.valueChanged[int].connect(self.changeThreshValue)
-        self.thresholdSlider.setMinimum(0)
-        self.thresholdSlider.setMaximum(255)
-        self.thresholdSlider.hide()
-
         # layout (add buttons here)
         self.vbox = QVBoxLayout()
         self.vbox.addWidget(self.frameLabel)
         self.vbox.addWidget(self.startButton)
         self.vbox.addWidget(self.startProgram)
-        self.vbox.addWidget(self.thresholdSlider)
         self.vbox.addWidget(self.toggleEye)
-
         self.setLayout(self.vbox)
+        # self.setCentralWidget(self.toggleEye)
 
     @pyqtSlot(np.ndarray)
     def updateImage(self, img):
@@ -158,7 +167,6 @@ class App(QWidget):
     def ifStartVideoClicked(self):
         self.frameLabel.show()
         self.toggleEye.show()
-        self.thresholdSlider.show()
         self.startProgram.hide()
         self.startButton.hide()
 
@@ -174,9 +182,6 @@ class App(QWidget):
         toggle = toggle + 1
         # print(toggle)
     
-    def changeThreshValue(self, value):
-        threshold = value
-        # print(threshold)
         
 if __name__== '__main__':
     app = QApplication(sys.argv)
