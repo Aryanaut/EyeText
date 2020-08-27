@@ -11,6 +11,18 @@ import dlib
 
 toggle = 0
 threshold = 0
+screenToggle = 0
+click = False
+point = 1
+
+# callibration points
+points = {
+    1 : (0, 0),
+    2 : (0, 0),
+    3 : (0, 0),
+    4 : (0, 0),
+}
+
 class videoThread(QThread):
     change_pixmap_signal=pyqtSignal(np.ndarray)
 
@@ -19,6 +31,13 @@ class videoThread(QThread):
 
     def on_threshold(self, x):
         pass
+    
+    def click_pos(self, event, x, y, flags, params):
+        global click
+        if event == cv2.EVENT_LBUTTONDOWN:
+            click = True
+        else:
+            click = False
 
     def blob_process(self, img, detection):
         img = cv2.erode(img, None, iterations=2)
@@ -32,9 +51,12 @@ class videoThread(QThread):
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
         eyeFrame = np.zeros((150, 300, 3), np.uint8)
+    
+        # screens
         cv2.namedWindow('eyeWindow')
         cv2.createTrackbar('threshold', 'eyeWindow', 0, 255, self.on_threshold)
-        
+        callibrationScreen = np.zeros((1080, 1920, 3), np.uint8)
+
         detector_params = cv2.SimpleBlobDetector_Params()
         detector_params.filterByColor = True
         detector_params.blobColor = 255
@@ -44,6 +66,7 @@ class videoThread(QThread):
         
         while True:
             ret, img = cap.read()
+            img = cv2.flip(img, 1)
             # img = cv2.resize(img, None, fx=0.5, fy=0.5)
             grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = detector(grayImg)
@@ -88,6 +111,7 @@ class videoThread(QThread):
                         y = keypoint.pt[1]
                         cx = int(x)
                         cy = int(y)
+                        coordinates = (cx, cy)
                         cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
 
                     cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -101,6 +125,24 @@ class videoThread(QThread):
                     cv2.imshow('eyeWindow', eyeFrame)
                 if toggle%2 == 0 & toggle !=0:
                     cv2.destroyWindow('eyeWindow')
+
+                if screenToggle%2 == 1:
+                    global point
+                    cv2.putText(callibrationScreen, "UP", (900, 60), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+                    cv2.putText(callibrationScreen, "RIGHT", (1700, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+                    cv2.putText(callibrationScreen, "LEFT", (20, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+                    cv2.putText(callibrationScreen, "DOWN", (860, 1000), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+                    
+                    if click == True:
+                        points[point] = coordinates
+                        point = point+1
+                        print(points)
+
+                    cv2.setMouseCallback('Callibration Screen', self.click_pos)
+                    cv2.imshow('Callibration Screen', callibrationScreen)
+                if screenToggle%2 == 0 & screenToggle !=0:
+                    cv2.destroyWindow('Callibration Screen')
+
             if ret:
                 self.change_pixmap_signal.emit(img)
                 # self.change_pixmap_signal.emit(eye)
@@ -142,6 +184,12 @@ class App(QWidget):
         self.toggleEye.hide()
         self.toggleEye.setStyleSheet(self.uiStyle)
 
+        self.toggleCallibration = QPushButton(self)
+        self.toggleCallibration.setText('Callibrate')
+        self.toggleCallibration.clicked.connect(self.ifToggleCallibrationClicked)
+        self.toggleCallibration.hide()
+        self.toggleCallibration.setStyleSheet(self.uiStyle)
+
         # layout (add buttons here)
         self.vbox = QVBoxLayout()
         self.vbox.addWidget(self.frameLabel)
@@ -167,6 +215,7 @@ class App(QWidget):
     def ifStartVideoClicked(self):
         self.frameLabel.show()
         self.toggleEye.show()
+        self.toggleCallibration.show()
         self.startProgram.hide()
         self.startButton.hide()
 
@@ -181,6 +230,10 @@ class App(QWidget):
         global toggle
         toggle = toggle + 1
         # print(toggle)
+    
+    def ifToggleCallibrationClicked(self):
+        global screenToggle
+        screenToggle += 1
     
         
 if __name__== '__main__':
