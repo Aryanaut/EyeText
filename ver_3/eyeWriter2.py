@@ -8,18 +8,48 @@ import numpy as np
 import os
 import pyautogui
 import dlib
+import threading
 
 os.chdir('/home/aryan/Documents/Python/EyeText/ver_3')
+eyeCoordinatesAtCenter = (0, 0)
+
 class videoThread(QThread):
     change_frame_pixmap_signal=pyqtSignal(np.ndarray)
     change_eye_pixmap_signal=pyqtSignal(np.ndarray)
+    callibrationScreen = np.zeros((1080, 1920, 3), np.uint8)
     threshold = 0
+    zoom = 1
+    coordinates = (0, 0)
+    callibrationStatus = False
+    listOfCoords = []
+    indexCoords = 0
 
     def midpoint(self, p1 ,p2):
         return int((p1.x + p2.x)/2), int((p1.y + p2.y)/2)
 
     def on_threshold(self, x):
         pass
+
+
+    def testTracking(self):
+        ratioX = int(960/eyeCoordinatesAtCenter[0])
+        ratioY = int(540/eyeCoordinatesAtCenter[1])
+        xdiff = self.listOfCoords[self.indexCoords][0] - self.listOfCoords[self.indexCoords-1][0]
+        ydiff = self.listOfCoords[self.indexCoords][1] - self.listOfCoords[self.indexCoords-1][1]
+
+        if self.coordinates[0] >= eyeCoordinatesAtCenter[0]:
+            if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
+                gazePosition = (960+(xdiff*ratioX), 540-(ydiff*ratioY))
+            if self.coordinates[1] <= eyeCoordinatesAtCenter[1]: 
+                gazePosition = (960+(xdiff*ratioX), 540+(ydiff*ratioY))
+
+        if self.coordinates[0] <= eyeCoordinatesAtCenter[0]:
+            if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
+                gazePosition = (960-(xdiff*ratioX), 540-(ydiff*ratioY*10))
+            if self.coordinates[1] <= eyeCoordinatesAtCenter[1]:
+                gazePosition = (960-(xdiff*ratioX), 540+(ydiff*ratioY*10))
+        # gazePosition = (self.coordinates[0]*ratioY, self.coordinates[1]*ratioX)
+        cv2.circle(self.callibrationScreen, gazePosition, 3, (0, 0, 255), -1)
 
     def click_pos(self, event, x, y, flags, params):
         global click
@@ -41,9 +71,7 @@ class videoThread(QThread):
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
         eyeFrame = np.zeros((150, 300, 3), np.uint8)
-        eyeFrame[:] = 255
-
-        callibrationScreen = np.zeros((1080, 1920, 3), np.uint8)
+        eyeFrame[:] = 40
 
         detector_params = cv2.SimpleBlobDetector_Params()
         detector_params.filterByColor = True
@@ -51,10 +79,11 @@ class videoThread(QThread):
         #detector_params.filterByArea = True
         #detector_params.maxArea = 3000
         blob_detector = cv2.SimpleBlobDetector_create(detector_params)
+        global eyeCoordinatesAtCenter
 
         while True:
             ret, img = cap.read()
-            img = cv2.flip(img, 1)
+            # img = cv2.flip(img, 1)
             img = cv2.resize(img, None, fx=0.5, fy=0.5)
             grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = detector(grayImg)
@@ -87,7 +116,7 @@ class videoThread(QThread):
                     max_y = np.max(left_eye_region[:, 1])
 
                     eye = img[min_y-1: max_y, min_x : max_x]
-                    eye = cv2.resize(eye, None, fx=3, fy=3)
+                    eye = cv2.resize(eye, None, fx=self.zoom, fy=self.zoom)
                     
                     gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
                     threshold = cv2.getTrackbarPos('threshold', 'eyeWindow')
@@ -100,8 +129,9 @@ class videoThread(QThread):
                         y = keypoint.pt[1]
                         cx = int(x)
                         cy = int(y)
-                        coordinates = (cx, cy)
+                        self.coordinates = (cx, cy)
                         cv2.circle(eye, (cx, cy), 5, (0, 0, 255), -1)
+                        self.listOfCoords.append(self.coordinates)
                     
                     cv2.drawKeypoints(eye, keypoints, eye, (0, 255, 0), 
                             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
@@ -109,24 +139,43 @@ class videoThread(QThread):
                     cv2.polylines(img, [left_eye_region], True, (255, 0, 255), 2)
                     ey, ex, ch = eye.shape
                     eyeFrame[int(75-(ey/2)):int(75+(ey/2)), int(150-(ex/2)):int(150+(ex/2))] = eye
+                    # print(eyeCoordinatesAtCenter, self.coordinates)
+                    if self.callibrationStatus == True:
+                        self.testTracking()
+                        cv2.imshow('screen', self.callibrationScreen)
 
             if ret:
                 self.change_frame_pixmap_signal.emit(img)
                 self.change_eye_pixmap_signal.emit(eyeFrame)
 
+
 class App(QtWidgets.QMainWindow):
     def __init__(self):
         super(App, self).__init__()
         uic.loadUi('eyeWriterInterface.ui', self)
+        self.xIcon = self.findChild(QtWidgets.QLabel, 'xIcon')
+        self.xIcon.hide()
+        self.testTracking = self.findChild(QtWidgets.QWidget, 'testTracking')
+        self.testTracking.hide()
 
         self.frame_label = self.findChild(QtWidgets.QLabel, 'frame_label')
         self.eye_label = self.findChild(QtWidgets.QLabel, 'eye_label')
 
         self.thresholdSlider = self.findChild(QtWidgets.QSlider, 'thresholdSlider')
         self.thresholdSlider.valueChanged[int].connect(self.thresholdChanged)
+
+        self.zoomSlider = self.findChild(QtWidgets.QSlider, 'zoomSlider')
+        self.zoomSlider.valueChanged[int].connect(self.zoomChanged)
+
         self.startVideo = self.findChild(QtWidgets.QPushButton, 'startVideo')
         self.startVideo.clicked.connect(self.startVideoClicked)
-        
+
+        self.clickCenter = self.findChild(QtWidgets.QPushButton, 'clickCenter')
+        self.clickCenter.clicked.connect(self.ifCenterClicked)
+        self.clickCenter.hide()
+
+        self.callibrate = self.findChild(QtWidgets.QPushButton, 'callibrate')
+        self.callibrate.clicked.connect(self.callibrateClicked)
         self.show()
 
     @pyqtSlot(np.ndarray)
@@ -156,6 +205,25 @@ class App(QtWidgets.QMainWindow):
 
     def thresholdChanged(self, value):
         self.thread.threshold = value
+
+    def zoomChanged(self, value):
+        self.thread.zoom = value
+
+    def callibrateClicked(self):
+        self.xIcon.show()
+        self.clickCenter.show()
+        self.callibrationInstructions = QMessageBox.about(self, 'Instructions', 'Look at the X on the screen and click the CENTER button')
+
+    def ifCenterClicked(self):
+        global eyeCoordinatesAtCenter
+        if self.thread.coordinates != (0, 0):
+            eyeCoordinatesAtCenter = self.thread.coordinates
+        else:
+            QMessageBox.about(self, 'Try Again')
+        # print(eyeCoordinatesAtCenter)
+        self.thread.callibrationStatus = True
+        self.xIcon.hide()
+        self.clickCenter.hide()
     
 
 if __name__ == "__main__":
