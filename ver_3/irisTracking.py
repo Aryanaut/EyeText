@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QLabel, QVBoxLayout, QBoxLayout, QPushButton, QSlider
+from PyQt5.QtWidgets import QWidget, QMainWindow, QApplication, QLabel, QVBoxLayout, QBoxLayout, QPushButton, QSlider, QMessageBox
 from PyQt5.QtGui import QPixmap, QImage, QColor
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QObject, QThread
 import sys
@@ -9,11 +9,15 @@ import os
 import pyautogui
 import dlib
 
-toggle = 0
 threshold = 0
 screenToggle = 0
 click = False
 point = 1
+showEyeWindow = False
+showTrackingScreen = False
+recallibrated = False
+
+os.chdir('/home/aryan/Documents/Python/EyeText/ver_3')
 
 # callibration points
 points = {
@@ -23,7 +27,7 @@ points = {
     4 : (0, 0),
 }
 
-class videoThread(QThread):
+class VideoThread(QThread):
     change_pixmap_signal=pyqtSignal(np.ndarray)
 
     def midpoint(self, p1 ,p2):
@@ -51,11 +55,13 @@ class videoThread(QThread):
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
         eyeFrame = np.zeros((150, 300, 3), np.uint8)
-    
+        coordinates = (0, 0)
+
         # screens
         cv2.namedWindow('eyeWindow')
         cv2.createTrackbar('threshold', 'eyeWindow', 0, 255, self.on_threshold)
         callibrationScreen = np.zeros((1080, 1920, 3), np.uint8)
+        testYourTracking = np.zeros((1080, 1920, 3), np.uint8)
 
         detector_params = cv2.SimpleBlobDetector_Params()
         detector_params.filterByColor = True
@@ -119,29 +125,52 @@ class videoThread(QThread):
                 
                 # print(eye.shape)
                 ey, ex, ch = eye.shape
-                eyeFrame[0:ey, 0:ex] = eye
+                eyeFrame[int(75-(ey/2)):int(75+(ey/2)), int(150-(ex/2)):int(150+(ex/2))] = eye
                 # cv2.imshow('eyeWindow', eye)
-                if toggle%2 == 1:
+                if showEyeWindow:
                     cv2.imshow('eyeWindow', eyeFrame)
-                if toggle%2 == 0 & toggle !=0:
-                    cv2.destroyWindow('eyeWindow')
-
+                else:
+                    if cv2.getWindowProperty('eyeWindow', cv2.WND_PROP_VISIBLE) != -1.0:
+                        cv2.destroyWindow('eyeWindow')
+                
                 if screenToggle%2 == 1:
                     global point
                     cv2.putText(callibrationScreen, "UP", (900, 60), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
                     cv2.putText(callibrationScreen, "RIGHT", (1700, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
                     cv2.putText(callibrationScreen, "LEFT", (20, 540), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
                     cv2.putText(callibrationScreen, "DOWN", (860, 1000), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
+                    cv2.putText(callibrationScreen, "CENTER", (910, 520), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 2)
                     
                     if click == True:
-                        points[point] = coordinates
-                        point = point+1
-                        print(points)
+                        if coordinates[0] == coordinates[1] & coordinates[0] == 0:
+                            pass
+                        else:
+                            points[point] = coordinates
+                            point = point+1
+                            print(points, point)
+                            if recallibrated == True:
+                                point = 1
 
                     cv2.setMouseCallback('Callibration Screen', self.click_pos)
                     cv2.imshow('Callibration Screen', callibrationScreen)
+                
+                # the tracking screen
+                
                 if screenToggle%2 == 0 & screenToggle !=0:
                     cv2.destroyWindow('Callibration Screen')
+
+                if showTrackingScreen:
+                    if point >= 5:
+                        ratioX = int((960/points[5][0]))
+                        ratioY = int((540/points[5][1]))
+                        pointerX = (coordinates[0]*(ratioX*2))
+                        pointerY = (coordinates[1]*(ratioY*2))
+                        # print(pointerX, pointerY)
+                        cv2.circle(testYourTracking, (pointerX, pointerY), 3, (0, 0, 255), -1)
+                    cv2.imshow('Test your Tracking', testYourTracking)
+                else:
+                    if cv2.getWindowProperty('Test your Tracking', cv2.WND_PROP_VISIBLE) != -1.0:
+                        cv2.destroyWindow('Test Your Tracking')
 
             if ret:
                 self.change_pixmap_signal.emit(img)
@@ -190,12 +219,26 @@ class App(QWidget):
         self.toggleCallibration.hide()
         self.toggleCallibration.setStyleSheet(self.uiStyle)
 
+        self.toggleTesting = QPushButton(self)
+        self.toggleTesting.setText('Test Your Tracking')
+        self.toggleTesting.clicked.connect(self.toggleTestScreen)
+        self.toggleTesting.hide()
+        self.toggleTesting.setStyleSheet(self.uiStyle)
+
+        self.recallibrate = QPushButton(self)
+        self.recallibrate.setText('Recallibrate')
+        self.recallibrate.clicked.connect(self.ifRecallibrateClicked)
+        self.recallibrate.hide()
+        self.recallibrate.setStyleSheet(self.uiStyle)
+
         # layout (add buttons here)
         self.vbox = QVBoxLayout()
         self.vbox.addWidget(self.frameLabel)
         self.vbox.addWidget(self.startButton)
         self.vbox.addWidget(self.startProgram)
         self.vbox.addWidget(self.toggleEye)
+        self.vbox.addWidget(self.toggleTesting)
+        self.vbox.addWidget(self.recallibrate)
         self.setLayout(self.vbox)
         # self.setCentralWidget(self.toggleEye)
 
@@ -216,25 +259,37 @@ class App(QWidget):
         self.frameLabel.show()
         self.toggleEye.show()
         self.toggleCallibration.show()
+        self.recallibrate.show()
+        self.toggleTesting.show()
         self.startProgram.hide()
         self.startButton.hide()
 
     def ifStartProgramClicked(self):
         # grabs the frames from the camera
-        self.thread = videoThread()
+        self.thread = VideoThread()
         self.thread.change_pixmap_signal.connect(self.updateImage)
         self.thread.start()
         self.startButton.show()
 
     def toggleEyeWin(self):
-        global toggle
-        toggle = toggle + 1
+        global showEyeWindow
+        showEyeWindow = not showEyeWindow
         # print(toggle)
     
     def ifToggleCallibrationClicked(self):
         global screenToggle
         screenToggle += 1
+
+    def toggleTestScreen(self):
+        global showTrackingScreen
+        showTrackingScreen = not showTrackingScreen
     
+    def ifRecallibrateClicked(self):
+        global recallibrate
+        for item in points:
+            points[item] = (0, 0)
+        QMessageBox.about(self, 'Go ahead', 'I said go ahead')
+        recallibrate = True
         
 if __name__== '__main__':
     app = QApplication(sys.argv)

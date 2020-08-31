@@ -12,6 +12,7 @@ while True:
     cv2.imshow('screen', screen)
     cv2.imshow('frame', frame)
     print(type(frame[0, 0][0]))
+    print(cv2.getWindowProperty('screen', cv2.WND_PROP_VISIBLE))
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
 
