@@ -9,16 +9,19 @@ import os
 import pyautogui
 import dlib
 import threading
+import logging
 
 os.chdir('/home/aryan/Documents/Python/EyeText/ver_3')
 eyeCoordinatesAtCenter = (0, 0)
-
+toggleTracking = False
+toggleMenu = True
 screenX, screenY = pyautogui.size()
 
 class videoThread(QThread):
     global screenX, screenY
     change_frame_pixmap_signal=pyqtSignal(np.ndarray)
     change_eye_pixmap_signal=pyqtSignal(np.ndarray)
+    change_tracking_pixmap_signal=pyqtSignal(np.ndarray)
     callibrationScreen = np.zeros((screenY, screenX, 3), np.uint8)
     threshold = 0
     zoom = 1
@@ -32,27 +35,6 @@ class videoThread(QThread):
 
     def on_threshold(self, x):
         pass
-
-
-    def testTracking(self):
-        ratioX = int(960/eyeCoordinatesAtCenter[0])
-        ratioY = int(540/eyeCoordinatesAtCenter[1])
-        xdiff = eyeCoordinatesAtCenter[0] - self.listOfCoords[self.indexCoords][0]
-        ydiff = eyeCoordinatesAtCenter[1] - self.listOfCoords[self.indexCoords][1]
-
-        if self.coordinates[0] >= eyeCoordinatesAtCenter[0]:
-            if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
-                gazePosition = ((int(screenX/2))+(xdiff*ratioX), (int(screenY/2))-(ydiff*ratioY))
-            if self.coordinates[1] <= eyeCoordinatesAtCenter[1]: 
-                gazePosition = ((int(screenX/2))+(xdiff*ratioX), (int(screenY/2))+(ydiff*ratioY))
-
-        if self.coordinates[0] <= eyeCoordinatesAtCenter[0]:
-            if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
-                gazePosition = ((int(screenX/2))-(xdiff*ratioX), (int(screenY/2))-(ydiff*ratioY*10))
-            if self.coordinates[1] <= eyeCoordinatesAtCenter[1]:
-                gazePosition = ((int(screenX/2))-(xdiff*ratioX), (int(screenY/2))+(ydiff*ratioY*10))
-        # gazePosition = (self.coordinates[0]*ratioY, self.coordinates[1]*ratioX)
-        cv2.circle(self.callibrationScreen, gazePosition, 3, (0, 0, 255), -1)
 
     def click_pos(self, event, x, y, flags, params):
         global click
@@ -76,6 +58,8 @@ class videoThread(QThread):
         eyeFrame = np.zeros((150, 300, 3), np.uint8)
         eyeFrame[:] = 40
 
+        testTracking = np.zeros((480, 640, 3), np.uint8)
+
         detector_params = cv2.SimpleBlobDetector_Params()
         detector_params.filterByColor = True
         detector_params.blobColor = 255
@@ -84,9 +68,10 @@ class videoThread(QThread):
         blob_detector = cv2.SimpleBlobDetector_create(detector_params)
         global eyeCoordinatesAtCenter
 
+        screenX, screenY = pyautogui.size()
         while True:
             ret, img = cap.read()
-            # img = cv2.flip(img, 1)
+            img = cv2.flip(img, 1)
             img = cv2.resize(img, None, fx=0.5, fy=0.5)
             grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = detector(grayImg)
@@ -142,20 +127,22 @@ class videoThread(QThread):
                     cv2.polylines(img, [left_eye_region], True, (255, 0, 255), 2)
                     ey, ex, ch = eye.shape
                     eyeFrame[int(75-(ey/2)):int(75+(ey/2)), int(150-(ex/2)):int(150+(ex/2))] = eye
+                    cv2.circle(testTracking, (10, 10), 3, (0, 255, 0), -1)
                     # print(eyeCoordinatesAtCenter, self.coordinates)
                     if self.callibrationStatus == True:
-                        self.testTracking()
-                        cv2.imshow('screen', self.callibrationScreen)
+                        # self.testTracking()
+                        print('ok')
 
             if ret:
                 self.change_frame_pixmap_signal.emit(img)
                 self.change_eye_pixmap_signal.emit(eyeFrame)
+                self.change_tracking_pixmap_signal.emit(testTracking)
 
 
 class App(QtWidgets.QMainWindow):
     def __init__(self):
         super(App, self).__init__()
-        global screenX, screenY
+        global screenX, screenY, toggleTracking
         if (screenX, screenY) == (1920, 1080):
             uic.loadUi('eyeWriterInterface-largeMonitor.ui', self)
         else:
@@ -166,6 +153,11 @@ class App(QtWidgets.QMainWindow):
         self.xIcon.hide()
         self.testTracking = self.findChild(QtWidgets.QWidget, 'testTracking')
         self.testTracking.hide()
+
+        self.buttons = self.findChild(QtWidgets.QWidget, 'buttons')
+        self.sliders = self.findChild(QtWidgets.QWidget, 'sliders')
+        self.buttons.show()
+        self.sliders.show()
 
         self.frame_label = self.findChild(QtWidgets.QLabel, 'frame_label')
         self.eye_label = self.findChild(QtWidgets.QLabel, 'eye_label')
@@ -178,6 +170,13 @@ class App(QtWidgets.QMainWindow):
 
         self.startVideo = self.findChild(QtWidgets.QPushButton, 'startVideo')
         self.startVideo.clicked.connect(self.startVideoClicked)
+
+        self.menuButton = self.findChild(QtWidgets.QPushButton, 'menuButton')
+        self.menuButton.clicked.connect(self.menuClicked)
+        self.menuButton.setIcon(QtGui.QIcon(QtGui.QPixmap('menu-icon.png')))
+
+        self.startTest = self.findChild(QtWidgets.QPushButton, 'startTest')
+        self.startTest.clicked.connect(self.startTestClicked)
 
         self.clickCenter = self.findChild(QtWidgets.QPushButton, 'clickCenter')
         self.clickCenter.clicked.connect(self.ifCenterClicked)
@@ -196,6 +195,11 @@ class App(QtWidgets.QMainWindow):
     def updateEyeImage(self, img):
         self.eyeImg = self.convertCvQt(img)
         self.eye_label.setPixmap(self.eyeImg)
+
+    @pyqtSlot(np.ndarray)
+    def updateTrackingImage(self, img):
+        self.trackingImg = self.convertCvQt(img)
+        self.testTracking.setPixmap(self.trackingImg)
 
     def convertCvQt(self, img):
         rgbImg = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -222,6 +226,15 @@ class App(QtWidgets.QMainWindow):
         self.xIcon.show()
         self.clickCenter.show()
         self.callibrationInstructions = QMessageBox.about(self, 'Instructions', 'Look at the X on the screen and click the CENTER button')
+    
+    def startTestClicked(self):
+        global toggleTracking
+        toggleTracking = not toggleTracking
+        if toggleTracking == True:
+            self.testTracking.show()
+        else:
+            self.testTracking.hide()
+        print(toggleTracking)
 
     def ifCenterClicked(self):
         global eyeCoordinatesAtCenter
@@ -233,6 +246,17 @@ class App(QtWidgets.QMainWindow):
         self.thread.callibrationStatus = True
         self.xIcon.hide()
         self.clickCenter.hide()
+
+    def menuClicked(self):
+        global toggleMenu
+        toggleMenu = not toggleMenu
+        if toggleMenu == False:
+            self.buttons.hide()
+            self.sliders.hide()
+        else:
+            self.buttons.show()
+            self.sliders.show()
+
     
 
 if __name__ == "__main__":

@@ -17,40 +17,11 @@
    <string notr="true">background-color: rgb(40, 40, 40); color: white</string>
   </property>
   <widget class="QWidget" name="App">
-   <widget class="QPushButton" name="startVideo">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>670</y>
-      <width>640</width>
-      <height>40</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Start Video</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="callibrate">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>570</y>
-      <width>640</width>
-      <height>40</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-    <property name="text">
-     <string>Callibrate</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="frame_label">
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>80</y>
+      <y>100</y>
       <width>640</width>
       <height>480</height>
      </rect>
@@ -68,8 +39,8 @@
    <widget class="QLabel" name="eye_label">
     <property name="geometry">
      <rect>
-      <x>910</x>
-      <y>80</y>
+      <x>815</x>
+      <y>90</y>
       <width>300</width>
       <height>150</height>
      </rect>
@@ -84,26 +55,13 @@
      <pixmap>video-off2.png</pixmap>
     </property>
    </widget>
-   <widget class="QPushButton" name="startTest">
-    <property name="geometry">
-     <rect>
-      <x>60</x>
-      <y>620</y>
-      <width>640</width>
-      <height>40</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Test Your Settings</string>
-    </property>
-   </widget>
    <widget class="QTextEdit" name="videoFeedTitle">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>20</y>
-      <width>171</width>
-      <height>51</height>
+      <x>320</x>
+      <y>55</y>
+      <width>121</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -114,16 +72,16 @@
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Video Feed&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Video Feed&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="eyeTitle">
     <property name="geometry">
      <rect>
-      <x>1000</x>
-      <y>20</y>
-      <width>101</width>
-      <height>51</height>
+      <x>930</x>
+      <y>50</y>
+      <width>71</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -134,14 +92,14 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Eye&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600;&quot;&gt;Eye&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QWidget" name="sliders" native="true">
     <property name="geometry">
      <rect>
-      <x>890</x>
-      <y>290</y>
+      <x>990</x>
+      <y>240</y>
       <width>350</width>
       <height>381</height>
      </rect>
@@ -217,6 +175,9 @@ p, li { white-space: pre-wrap; }
      <property name="maximum">
       <number>6</number>
      </property>
+     <property name="sliderPosition">
+      <number>5</number>
+     </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
@@ -272,7 +233,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Threshold&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;THR&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
     <widget class="QTextEdit" name="textEdit_2">
@@ -292,7 +253,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Magnification&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;MAG&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </widget>
@@ -329,7 +290,7 @@ p, li { white-space: pre-wrap; }
     <property name="geometry">
      <rect>
       <x>60</x>
-      <y>80</y>
+      <y>100</y>
       <width>640</width>
       <height>480</height>
      </rect>
@@ -337,82 +298,103 @@ p, li { white-space: pre-wrap; }
     <property name="styleSheet">
      <string notr="true">background-color: rgb(20, 20, 20); border-radius:10px; border-color: black; padding: 6px</string>
     </property>
-    <widget class="QLabel" name="sq1">
+   </widget>
+   <widget class="QPushButton" name="menuButton">
+    <property name="geometry">
+     <rect>
+      <x>1270</x>
+      <y>630</y>
+      <width>60</width>
+      <height>60</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="icon">
+     <iconset theme="breeze">
+      <normaloff>.</normaloff>.</iconset>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>280</y>
+      <width>300</width>
+      <height>300</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="pixmap">
+     <pixmap>eyeWriterIcon.png</pixmap>
+    </property>
+   </widget>
+   <widget class="QWidget" name="buttons" native="true">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>640</y>
+      <width>551</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <widget class="QPushButton" name="callibrate">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>311</width>
-       <height>231</height>
+       <x>10</x>
+       <y>10</y>
+       <width>171</width>
+       <height>40</height>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: white</string>
+      <string notr="true"/>
      </property>
      <property name="text">
-      <string/>
+      <string>Callibrate</string>
      </property>
     </widget>
-    <widget class="QLabel" name="sq2">
+    <widget class="QPushButton" name="startVideo">
      <property name="geometry">
       <rect>
-       <x>329</x>
-       <y>0</y>
-       <width>311</width>
-       <height>231</height>
+       <x>370</x>
+       <y>10</y>
+       <width>171</width>
+       <height>40</height>
       </rect>
      </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: white</string>
-     </property>
      <property name="text">
-      <string/>
+      <string>Start Video</string>
      </property>
     </widget>
-    <widget class="QLabel" name="sq3">
+    <widget class="QPushButton" name="startTest">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>249</y>
-       <width>311</width>
-       <height>231</height>
+       <x>190</x>
+       <y>10</y>
+       <width>171</width>
+       <height>40</height>
       </rect>
      </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: white</string>
-     </property>
      <property name="text">
-      <string/>
-     </property>
-    </widget>
-    <widget class="QLabel" name="sq4">
-     <property name="geometry">
-      <rect>
-       <x>329</x>
-       <y>249</y>
-       <width>311</width>
-       <height>231</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">background-color: white</string>
-     </property>
-     <property name="text">
-      <string/>
+      <string>Test Your Settings</string>
      </property>
     </widget>
    </widget>
-   <zorder>startVideo</zorder>
-   <zorder>callibrate</zorder>
    <zorder>frame_label</zorder>
    <zorder>eye_label</zorder>
-   <zorder>startTest</zorder>
    <zorder>videoFeedTitle</zorder>
    <zorder>eyeTitle</zorder>
-   <zorder>sliders</zorder>
    <zorder>testTracking</zorder>
    <zorder>xIcon</zorder>
    <zorder>clickCenter</zorder>
+   <zorder>menuButton</zorder>
+   <zorder>label</zorder>
+   <zorder>sliders</zorder>
+   <zorder>buttons</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
