@@ -13,10 +13,13 @@ import threading
 os.chdir('/home/aryan/Documents/Python/EyeText/ver_3')
 eyeCoordinatesAtCenter = (0, 0)
 
+screenX, screenY = pyautogui.size()
+
 class videoThread(QThread):
+    global screenX, screenY
     change_frame_pixmap_signal=pyqtSignal(np.ndarray)
     change_eye_pixmap_signal=pyqtSignal(np.ndarray)
-    callibrationScreen = np.zeros((1080, 1920, 3), np.uint8)
+    self.callibrationScreen = np.zeros((screenY, screenX, 3), np.uint8)
     threshold = 0
     zoom = 1
     coordinates = (0, 0)
@@ -34,20 +37,20 @@ class videoThread(QThread):
     def testTracking(self):
         ratioX = int(960/eyeCoordinatesAtCenter[0])
         ratioY = int(540/eyeCoordinatesAtCenter[1])
-        xdiff = self.listOfCoords[self.indexCoords][0] - self.listOfCoords[self.indexCoords-1][0]
-        ydiff = self.listOfCoords[self.indexCoords][1] - self.listOfCoords[self.indexCoords-1][1]
+        xdiff = eyeCoordinatesAtCenter[0] - self.listOfCoords[self.indexCoords][0]
+        ydiff = eyeCoordinatesAtCenter[1] - self.listOfCoords[self.indexCoords][1]
 
         if self.coordinates[0] >= eyeCoordinatesAtCenter[0]:
             if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
-                gazePosition = (960+(xdiff*ratioX), 540-(ydiff*ratioY))
+                gazePosition = ((int(screenX/2))+(xdiff*ratioX), (int(screenY/2))-(ydiff*ratioY))
             if self.coordinates[1] <= eyeCoordinatesAtCenter[1]: 
-                gazePosition = (960+(xdiff*ratioX), 540+(ydiff*ratioY))
+                gazePosition = ((int(screenX/2))+(xdiff*ratioX), (int(screenY/2))+(ydiff*ratioY))
 
         if self.coordinates[0] <= eyeCoordinatesAtCenter[0]:
             if self.coordinates[1] >= eyeCoordinatesAtCenter[1]:
-                gazePosition = (960-(xdiff*ratioX), 540-(ydiff*ratioY*10))
+                gazePosition = ((int(screenX/2))-(xdiff*ratioX), (int(screenY/2))-(ydiff*ratioY*10))
             if self.coordinates[1] <= eyeCoordinatesAtCenter[1]:
-                gazePosition = (960-(xdiff*ratioX), 540+(ydiff*ratioY*10))
+                gazePosition = ((int(screenX/2))-(xdiff*ratioX), (int(screenY/2))+(ydiff*ratioY*10))
         # gazePosition = (self.coordinates[0]*ratioY, self.coordinates[1]*ratioX)
         cv2.circle(self.callibrationScreen, gazePosition, 3, (0, 0, 255), -1)
 
@@ -153,6 +156,8 @@ class App(QtWidgets.QMainWindow):
     def __init__(self):
         super(App, self).__init__()
         uic.loadUi('eyeWriterInterface.ui', self)
+        global screenX, screenY
+        self.setGeometry(0, 0, screenX, screenY)
         self.xIcon = self.findChild(QtWidgets.QLabel, 'xIcon')
         self.xIcon.hide()
         self.testTracking = self.findChild(QtWidgets.QWidget, 'testTracking')
