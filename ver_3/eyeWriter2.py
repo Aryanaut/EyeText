@@ -19,7 +19,7 @@ class videoThread(QThread):
     global screenX, screenY
     change_frame_pixmap_signal=pyqtSignal(np.ndarray)
     change_eye_pixmap_signal=pyqtSignal(np.ndarray)
-    self.callibrationScreen = np.zeros((screenY, screenX, 3), np.uint8)
+    callibrationScreen = np.zeros((screenY, screenX, 3), np.uint8)
     threshold = 0
     zoom = 1
     coordinates = (0, 0)
