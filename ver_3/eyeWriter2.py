@@ -155,8 +155,12 @@ class videoThread(QThread):
 class App(QtWidgets.QMainWindow):
     def __init__(self):
         super(App, self).__init__()
-        uic.loadUi('eyeWriterInterface.ui', self)
         global screenX, screenY
+        if (screenX, screenY) == (1920, 1080):
+            uic.loadUi('eyeWriterInterface-largeMonitor.ui', self)
+        else:
+            uic.loadUi('eyeWriterInterface-smallMonitor.ui', self)
+
         self.setGeometry(0, 0, screenX, screenY)
         self.xIcon = self.findChild(QtWidgets.QLabel, 'xIcon')
         self.xIcon.hide()
