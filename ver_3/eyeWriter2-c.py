@@ -32,8 +32,13 @@ class videoThread(QThread):
     lines = False
     indexCoords = 0
 
+    centerCoords = (int(screenX/2), int(screenY/2))
     testTracking = np.zeros((screenY, screenX, 3), np.uint8)
     testTracking[:] = 0
+    reg1 = [(0, 0), (683, 384)]
+    reg2 = [(683, 0), (1366, 384)]
+    reg3 = [(683, 384), (1366, 768)]
+    reg4 = [(0, 384), (683, 768)]
 
     def midpoint(self, p1 ,p2):
         return int((p1.x + p2.x)/2), int((p1.y + p2.y)/2)
@@ -55,6 +60,18 @@ class videoThread(QThread):
         keypoints = detection.detect(img)
         return keypoints
 
+    def regionSelector(self, gazeX, gazeY):
+        if gazeX > self.centerCoords[0]:
+            if gazeY > self.centerCoords[1]:
+                return self.reg3
+            if gazeY < self.centerCoords[1]:
+                return self.reg2
+        if gazeX < self.centerCoords[0]:
+            if gazeY > self.centerCoords[1]:
+                return self.reg4
+            if gazeY < self.centerCoords[1]:
+                return self.reg1
+
     def run(self):
         cap = cv2.VideoCapture(0)
         detector = dlib.get_frontal_face_detector()
@@ -64,6 +81,8 @@ class videoThread(QThread):
         eyeFrame[:] = 40
         screenX, screenY = pyautogui.size()
         detector_params = cv2.SimpleBlobDetector_Params()
+        gazeX, gazeY = (0, 0)
+
         detector_params.filterByColor = True
         detector_params.blobColor = 255
         #detector_params.filterByArea = True
@@ -137,13 +156,9 @@ class videoThread(QThread):
 
                     # calculating coordinates for the point on the screen
                     # equation - (x/w)*w1, (y/h)*h1
-                    w1 = screenX
-                    h1 = screenY
+                    '''
                     gazeX = int((self.coordinates[0]/ex)*w1)
                     gazeY = int((self.coordinates[1]/ey)*h1)
-
-                    centerCoords = (int(screenX/2), int(screenY/2))
-                    
                     if gazeY > centerCoords[1]:
                         gazeY = gazeY-100
                     if gazeY < centerCoords[1]:
@@ -164,10 +179,40 @@ class videoThread(QThread):
                     if self.lines == False:
                         self.testTracking[:] = 0
                     gazeCoordsIndex += 1
+                    '''
                     # print(eyeCoordinatesAtCenter, self.coordinates)
                     if self.callibrationStatus == True:
                         # self.testTracking()
-                        print('yeah this does nothing right now')
+                        xDiff = self.coordinates[0]-eyeCoordinatesAtCenter[0]
+                        yDiff = self.coordinates[1]-eyeCoordinatesAtCenter[1]
+                        xRatio = int(self.centerCoords[0]/eyeCoordinatesAtCenter[0])
+                        yRatio = int(self.centerCoords[1]/eyeCoordinatesAtCenter[1])
+                        if xDiff > 0:
+                            gazeX = self.centerCoords[0]+(xDiff*xRatio)
+                        if xDiff < 0:
+                            gazeX = self.centerCoords[0]+(xDiff*xRatio)
+                        if yDiff > 0:
+                            gazeY = self.centerCoords[1]-(yDiff*yRatio*4)
+                        if yDiff < 0:
+                            gazeY = self.centerCoords[1]+(yDiff*yRatio*4)
+                        gazePosition = (gazeX, gazeY)
+                        listofGazeCoords.append(gazePosition)
+                        activeRegion = self.regionSelector(gazeX, gazeY)
+                        if self.lines == True:
+                            cv2.line(self.testTracking, listofGazeCoords[gazeCoordsIndex-1], listofGazeCoords[gazeCoordsIndex], (0, 255, 0), 2)
+                        if self.lines == False:
+                            self.testTracking[:] = 0
+
+                        if activeRegion == self.reg1:
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                        if activeRegion == self.reg2:
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                        if activeRegion == self.reg3:
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                        if activeRegion == self.reg4:
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+
+                        gazeCoordsIndex += 1
             if ret:
                 self.change_frame_pixmap_signal.emit(img)
                 self.change_eye_pixmap_signal.emit(eyeFrame)
@@ -287,10 +332,11 @@ class App(QtWidgets.QMainWindow):
 
     def ifCenterClicked(self):
         global eyeCoordinatesAtCenter
-        if self.thread.coordinates != (0, 0):
-            eyeCoordinatesAtCenter = self.thread.coordinates
-        else:
+        if self.thread.coordinates == (0, 0):
             QMessageBox.about(self, 'Try Again')
+        else:
+            eyeCoordinatesAtCenter = self.thread.coordinates
+            print(eyeCoordinatesAtCenter)
         # print(eyeCoordinatesAtCenter)
         self.thread.callibrationStatus = True
         self.xIcon.hide()
