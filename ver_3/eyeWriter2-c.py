@@ -90,6 +90,8 @@ class videoThread(QThread):
         blob_detector = cv2.SimpleBlobDetector_create(detector_params)
         global eyeCoordinatesAtCenter
         listofGazeCoords = [(int(screenX/2), int(screenY/2)), (int(screenX/2), int(screenY/2))]
+
+        eyeWriterGraphic = cv2.imread('eyewritergraphic.png')
         gazeCoordsIndex = 1
         frame = 0
 
@@ -153,6 +155,7 @@ class videoThread(QThread):
                     cv2.polylines(img, [left_eye_region], True, (255, 0, 255), 2)
                     ey, ex, ch = eye.shape
                     eyeFrame[int(75-(ey/2)):int(75+(ey/2)), int(150-(ex/2)):int(150+(ex/2))] = eye
+                    cv2.putText(img, str(self.coordinates), (30, 30), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 3)
 
                     # calculating coordinates for the point on the screen
                     # equation - (x/w)*w1, (y/h)*h1
@@ -192,25 +195,25 @@ class videoThread(QThread):
                         if xDiff < 0:
                             gazeX = self.centerCoords[0]+(xDiff*xRatio)
                         if yDiff > 0:
-                            gazeY = self.centerCoords[1]-(yDiff*yRatio*4)
+                            gazeY = self.centerCoords[1]-(yDiff*yRatio*2)
                         if yDiff < 0:
-                            gazeY = self.centerCoords[1]+(yDiff*yRatio*4)
+                            gazeY = self.centerCoords[1]-(yDiff*yRatio*2)
                         gazePosition = (gazeX, gazeY)
                         listofGazeCoords.append(gazePosition)
                         activeRegion = self.regionSelector(gazeX, gazeY)
                         if self.lines == True:
                             cv2.line(self.testTracking, listofGazeCoords[gazeCoordsIndex-1], listofGazeCoords[gazeCoordsIndex], (0, 255, 0), 2)
                         if self.lines == False:
-                            self.testTracking[:] = 0
+                            self.testTracking[:] = eyeWriterGraphic
 
                         if activeRegion == self.reg1:
-                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (0, 0, 255), 3)
                         if activeRegion == self.reg2:
-                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (0, 0, 255), 3)
                         if activeRegion == self.reg3:
-                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (0, 0, 255), 3)
                         if activeRegion == self.reg4:
-                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (255, 255, 255), 3)
+                            cv2.rectangle(self.testTracking, activeRegion[0], activeRegion[1], (0, 0, 255), 3)
 
                         gazeCoordsIndex += 1
             if ret:

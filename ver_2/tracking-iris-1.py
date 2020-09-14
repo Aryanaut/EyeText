@@ -77,7 +77,7 @@ while True:
             threshold = cv2.getTrackbarPos('threshold', 'frame')
 
             eye = frame[min_y-1: max_y, min_x : max_x]
-            eye = cv2.resize(eye, None, fx=3, fy=3)
+            eye = cv2.resize(eye, None, fx=5, fy=5)
             gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
             #gray_eye = cv2.GaussianBlur(gray_eye, (7, 7), 0)
             _, img = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
@@ -88,6 +88,7 @@ while True:
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
 
         cv2.imshow('eye', eye)
+        cv2.imshow('thr', img)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break

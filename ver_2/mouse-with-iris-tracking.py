@@ -112,10 +112,10 @@ def irisCoord():
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
             #cv2.circle(screen, (0, 540), 6, (255, 255, 255), -1)
 
-    return (eye, frame)
+            return (eye, frame, img)
 
 def callibrate():
-    eye, frame = irisCoord()
+    eye, frame, img = irisCoord()
     
     g = str((cx, cy))
     
@@ -126,7 +126,7 @@ def callibrate():
 # cv2.putText(screen, "NOT DETECTED, ADJUST PARAMETERS", (200, 540), cv2.FONT_HERSHEY_COMPLEX, 9, (255, 255, 255), 2)
 
     
-    cv2.imshow('eye', eye)
+    cv2.imshow('eye', img)
     cv2.imshow('screen', screen)
     cv2.setMouseCallback('screen', click_pos)
     cv2.imshow('frame', frame)
