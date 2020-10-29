@@ -73,7 +73,7 @@ class videoThread(QThread):
                 return self.reg1
 
     def run(self):
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(1)
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
