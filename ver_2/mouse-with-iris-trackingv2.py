@@ -11,10 +11,10 @@ def on_threshold(x):
 click = False
 # variable defenitions
 screen = np.zeros((1080, 1920, 3), np.uint8)
-error_msg = cv2.imread('/home/aryan/Documents/Python/EyeText/ver_2/err-msg.png')
+#error_msg = cv2.imread('/home/aryan/Documents/Python/EyeText/ver_2/err-msg.png')
 
 #changes directory to current
-os.chdir("/home/aryan/Documents/Python/EyeText/ver_2")
+#os.chdir("/home/aryan/Documents/Python/EyeText/ver_2")
 cap = cv2.VideoCapture(0)
 
 cv2.namedWindow('frame')
