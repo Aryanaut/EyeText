@@ -47,14 +47,28 @@ while True:
                                 (landmarks.part(40).x, landmarks.part(40).y),
                                 (landmarks.part(41).x, landmarks.part(41).y)], np.int32)
 
+            right_eye_region = np.array([(landmarks.part(42).x, landmarks.part(42).y),
+                                (landmarks.part(43).x, landmarks.part(43).y),
+                                (landmarks.part(44).x, landmarks.part(44).y),
+                                (landmarks.part(45).x, landmarks.part(45).y),
+                                (landmarks.part(46).x, landmarks.part(46).y),
+                                (landmarks.part(47).x, landmarks.part(47).y)], np.int32)
+
             min_x = np.min(left_eye_region[:, 0])
             max_x = np.max(left_eye_region[:, 0])
             min_y = np.min(left_eye_region[:, 1])
             max_y = np.max(left_eye_region[:, 1])
 
-            eye = frame[min_y-1: max_y, min_x : max_x]
-            eye = cv2.resize(eye, None, fx=8, fy=8)
-            gray_eye = cv2.cvtColor(eye, cv2.COLOR_BGR2GRAY)
+            min_x1 = np.min(right_eye_region[:, 0])
+            max_x1 = np.max(right_eye_region[:, 0])
+            min_y1 = np.min(right_eye_region[:, 1])
+            max_y1 = np.max(right_eye_region[:, 1])
+
+            left_eye = frame[min_y-1: max_y+3, min_x-3 : max_x+1]
+            right_eye = frame[min_y1-1: max_y1+3, min_x1-3 : max_x1+1]
+            right_eye = cv2.resize(right_eye, None, fx=8, fy=8)
+            left_eye = cv2.resize(left_eye, None, fx=8, fy=8)
+            gray_eye = cv2.cvtColor(left_eye, cv2.COLOR_BGR2GRAY)
             _, thr = cv2.threshold(gray_eye, threshold, 255, cv2.THRESH_BINARY_INV)
             edged = cv2.Canny(thr, threshold, 200)
             thr = cv2.GaussianBlur(thr, (3, 3), 0)
@@ -66,13 +80,16 @@ while True:
                 cont, h = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
                 if len(cont) > 0:
                     print('detected')
-                    cv2.drawContours(eye, cont, -1, (0, 0, 255), 3)
+                    cv2.drawContours(left_eye, cont, -1, (0, 0, 255), 3)
             cv2.polylines(frame, [left_eye_region], True, (0,0,255), 2)
+            cv2.polylines(frame, [right_eye_region], True, (0, 0, 255), 3)
 
-    cv2.imshow('eye', eye)
+    cv2.imshow('eye', left_eye)
+    cv2.imshow('right', right_eye)
     cv2.imshow('thr', thr)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xff == ord('q'):
+        cv2.imwrite('eye.png', right_eye)
         break
     
 
