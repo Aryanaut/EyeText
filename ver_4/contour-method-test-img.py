@@ -9,7 +9,7 @@ kernel = np.array([[0, -1, 0],
                    [-1, 5,-1], 
                    [0, -1, 0]])
 
-img = cv2.imread('eye.png')
+img = cv2.imread('test2.jpg')
 img = cv2.filter2D(img, -1, kernel)
 cv2.namedWindow('img')
 gray_eye = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
