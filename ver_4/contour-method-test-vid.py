@@ -61,13 +61,12 @@ while True:
             right_eye = cv2.resize(right_eye, None, fx=8, fy=8)
             left_eye = cv2.resize(left_eye, None, fx=8, fy=8)
             gray_eye = cv2.cvtColor(right_eye, cv2.COLOR_BGR2GRAY)
-            _, thr = cv2.threshold(gray_eye, 80, 255, cv2.THRESH_BINARY_INV)
+            _, thr = cv2.threshold(gray_eye, 60, 255, cv2.THRESH_BINARY)
             
             edged = cv2.Canny(thr, 80, 200)
-            thr = cv2.GaussianBlur(thr, (3, 3), 0)
             thr = cv2.dilate(thr, None, iterations=6)
             thr = cv2.erode(thr, None, iterations=2)
-            thr = cv2.GaussianBlur(thr, (9, 9), 0)
+            thr = cv2.GaussianBlur(thr, (9, 9), 2)
             
             cont, h = cv2.findContours(edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
             cv2.drawContours(right_eye, cont, -1, (0, 255, 0), 3)

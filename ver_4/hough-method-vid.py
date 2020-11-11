@@ -65,11 +65,11 @@ while True:
             
             edged = cv2.Canny(thr, 80, 200)
             thr = cv2.GaussianBlur(thr, (3, 3), 0)
-            thr = cv2.dilate(thr, None, iterations=10)
-            thr = cv2.erode(thr, None, iterations=6)
+            thr = cv2.dilate(thr, None, iterations=4)
+            thr = cv2.erode(thr, None, iterations=13)
             thr = cv2.blur(thr, (12, 12), 0)
-            circles = cv2.HoughCircles(edged,cv2.HOUGH_GRADIENT,1,20,
-                            param1=25,param2=70,minRadius=0)
+            circles = cv2.HoughCircles(edged,cv2.HOUGH_GRADIENT,2,50,
+                            param1=30,param2=60,minRadius=30)
 
             if circles is not None:
                 circles = np.round(circles[0, :]).astype("int")
