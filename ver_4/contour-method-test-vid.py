@@ -61,21 +61,26 @@ while True:
             right_eye = cv2.resize(right_eye, None, fx=8, fy=8)
             left_eye = cv2.resize(left_eye, None, fx=8, fy=8)
             gray_eye = cv2.cvtColor(right_eye, cv2.COLOR_BGR2GRAY)
+            gray_eye = cv2.GaussianBlur(gray_eye, (7, 7), 0)
             _, thr = cv2.threshold(gray_eye, 60, 255, cv2.THRESH_BINARY)
             
-            edged = cv2.Canny(thr, 80, 200)
-            thr = cv2.dilate(thr, None, iterations=6)
             thr = cv2.erode(thr, None, iterations=2)
-            thr = cv2.GaussianBlur(thr, (9, 9), 2)
+            thr = cv2.dilate(thr, None, iterations=15)
+            thr = cv2.medianBlur(thr, 5)
+            edged = cv2.Canny(thr, 80, 200)
             
-            cont, h = cv2.findContours(edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-            cv2.drawContours(right_eye, cont, -1, (0, 255, 0), 3)
-            largest = max(cont, key=cv2.contourArea)
-            hull = []
-            
-            for i in range(len(cont)):
-                hull.append(cv2.convexHull(largest, False))
-                cv2.drawContours(right_eye, hull, i, (0, 0, 255), 3)
+            cont, h = cv2.findContours(edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            largest = cont[1]
+            for c in largest:
+                m = cv2.moments(c)
+                if m['m00'] != 0:
+                    cx = int(m['m10']/m['m00'])
+                    cy = int(m['m01']/m['m00'])
+                    cv2.circle(right_eye, (cx, cy), 2, (0, 0, 255), -1)
+                else:
+                    pass
+            # cv2.drawContours(right_eye, cont, -1, (0, 255, 0), 3)
+            cv2.drawContours(right_eye, largest, -1, (0, 255, 255), 3)
 
             cv2.polylines(frame, [left_eye_region], True, (0, 0, 255), 3)
             cv2.polylines(frame, [right_eye_region], True, (0, 0, 255), 3)
