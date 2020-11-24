@@ -45,10 +45,13 @@ def main():
         cv2.imshow('left', left)
 
         if cv2.waitKey(1) & 0xff == ord('q'):
-            stereo = cv2.StereoBM_create(numDisparities=16, blockSize=5)
-            disparity = stereo.compute(leftGray, rightGray)
-            plt.imshow(disparity, 'gray')
-            plt.show()
+            if leftGray.shape == rightGray.shape:
+                stereo = cv2.StereoBM_create(numDisparities=48, blockSize=13)
+                disparity = stereo.compute(leftGray, rightGray)
+                plt.imshow(disparity, 'gray')
+                plt.show()
+            else:
+                print("NOPE")
             break
             run = False
         else:
