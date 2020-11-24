@@ -30,14 +30,12 @@ def left_vid():
     while True:
         global left
         _, left = leftCamera.read()
-        left = cv2.flip(left, 0)
         left = cv2.resize(left, None, fx=0.5, fy=0.5)
 
 def right_vid():
     while True:
         global right
         _, right = rightCamera.read()
-        right = cv2.flip(right, 0)
         right = cv2.resize(right, None, fx=0.5, fy=0.5)
 
 def main():
