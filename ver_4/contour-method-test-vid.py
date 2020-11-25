@@ -1,11 +1,15 @@
 import cv2
 import numpy as np
 import dlib
+import imutils
 
 cap = cv2.VideoCapture('eye-movement.mp4')
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
+avgX, avgY = (0, 0)
+pList = [(0, 0), (0, 0), (0, 0), (0, 0)]
+count = 0
 def midpoint(p1, p2):
     return int((p1.x + p2.x)/2), int((p1.y + p2.y))
 
@@ -61,26 +65,32 @@ while True:
             right_eye = cv2.resize(right_eye, None, fx=8, fy=8)
             left_eye = cv2.resize(left_eye, None, fx=8, fy=8)
             gray_eye = cv2.cvtColor(right_eye, cv2.COLOR_BGR2GRAY)
-            gray_eye = cv2.GaussianBlur(gray_eye, (7, 7), 0)
-            _, thr = cv2.threshold(gray_eye, 60, 255, cv2.THRESH_BINARY)
+            _, thr = cv2.threshold(gray_eye, 65, 255, cv2.THRESH_BINARY_INV)
             
-            thr = cv2.erode(thr, None, iterations=2)
-            thr = cv2.dilate(thr, None, iterations=15)
-            thr = cv2.medianBlur(thr, 5)
-            edged = cv2.Canny(thr, 80, 200)
+            thr = cv2.erode(thr, None, iterations=20)
+            thr = cv2.dilate(thr, None, iterations=20)
+            thr = cv2.medianBlur(thr, 9)
+            thr = cv2.GaussianBlur(thr, (9, 9), 0)
+            edged = cv2.Canny(thr, 100, 200)
             
-            cont, h = cv2.findContours(edged, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-            largest = cont[1]
-            for c in largest:
-                m = cv2.moments(c)
+            cont, h = cv2.findContours(thr, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+            if len(cont) != 0:
+                contL = max(cont, key = cv2.contourArea)
+                cv2.drawContours(right_eye, contL, -1, (0, 255, 255), 3)
+                m = cv2.moments(contL)
                 if m['m00'] != 0:
                     cx = int(m['m10']/m['m00'])
                     cy = int(m['m01']/m['m00'])
-                    cv2.circle(right_eye, (cx, cy), 2, (0, 0, 255), -1)
+                    pList[count] = (cx, cy)
+                    count += 1
+                    if count == 3:
+                        avgX, avgY = ((pList[0][0]+pList[1][0]+pList[2][0]+pList[3][0])/4, 
+                                    (pList[0][1]+pList[1][1]+pList[2][1]+pList[3][1])/4)
+                        count = 0
+                    # cv2.circle(right_eye, (int(avgX), int(avgY)), 5, (0, 0, 255), -1)
+                    cv2.circle(right_eye, (cx, cy), 5, (0, 0, 255), -1)
                 else:
                     pass
-            # cv2.drawContours(right_eye, cont, -1, (0, 255, 0), 3)
-            cv2.drawContours(right_eye, largest, -1, (0, 255, 255), 3)
 
             cv2.polylines(frame, [left_eye_region], True, (0, 0, 255), 3)
             cv2.polylines(frame, [right_eye_region], True, (0, 0, 255), 3)
@@ -89,8 +99,10 @@ while True:
     cv2.imshow('right_eye_region', right_eye)
     cv2.imshow('thr', thr)
     cv2.imshow('edged', edged)
-    if cv2.waitKey(40) & 0xff == ord('q'):
+    if cv2.waitKey(30) & 0xff == ord('q'):
+        cv2.imwrite('examine.png', right_eye)
         break
+        
 
 cap.release()
 cv2.destroyAllWindows()
