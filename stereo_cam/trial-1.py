@@ -9,27 +9,25 @@ GSTREAMER_PIPELINE1 = 'nvarguscamerasrc sensor_id=1 ! video/x-raw(memory:NVMM), 
 leftCamera = cv2.VideoCapture(GSTREAMER_PIPELINE1, cv2.CAP_GSTREAMER)
 rightCamera = cv2.VideoCapture(GSTREAMER_PIPELINE0, cv2.CAP_GSTREAMER)
 
-run = True
-
 left = np.zeros((100, 100, 3), np.uint8)
 right = np.zeros((100, 100, 3), np.uint8)
 
 def left_vid():
     while True:
-        global left, run
+        global left
         _, left = leftCamera.read()
         left = cv2.flip(left, 0)
         left = cv2.resize(left, None, fx=0.5, fy=0.5)
-        if run == False:
+        if cv2.waitKey(1) & 0xff == ord('q'):
             break
 
 def right_vid():
     while True:
-        global right, run
+        global right
         _, right = rightCamera.read()
         right = cv2.flip(right, 0)
         right = cv2.resize(right, None, fx=0.5, fy=0.5)
-        if run == False:
+        if cv2.waitKey(1) & 0xff == ord('q'):
             break
 
 def main():
@@ -53,9 +51,6 @@ def main():
             else:
                 print("NOPE")
             break
-            run = False
-        else:
-            run = True
 
     leftCamera.release()
     rightCamera.release()
