@@ -13,6 +13,8 @@ count = 0
 def midpoint(p1, p2):
     return int((p1.x + p2.x)/2), int((p1.y + p2.y))
 
+fourcc = cv2.VideoWriter_fourcc(*'XVID') 
+
 while True:
     ret, frame = cap.read()
     if ret is False: 
@@ -99,7 +101,7 @@ while True:
     cv2.imshow('right_eye_region', right_eye)
     cv2.imshow('thr', thr)
     cv2.imshow('edged', edged)
-    if cv2.waitKey(30) & 0xff == ord('q'):
+    if cv2.waitKey(60) & 0xff == ord('q'):
         cv2.imwrite('examine.png', right_eye)
         break
         
