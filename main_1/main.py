@@ -73,7 +73,8 @@ class videoThread(QThread):
                 return self.reg1
 
     def run(self):
-        cap = cv2.VideoCapture(1)
+        GSTREAMER_PIPELINE0 = 'nvarguscamerasrc sensor_id=0 ! video/x-raw(memory:NVMM), width=3280, height=2464, format=(string)NV12, framerate=21/1 ! nvvidconv flip-method=0 ! video/x-raw, width=960, height=616, format=(string)BGRx ! videoconvert ! video/x-raw, format=(string)BGR ! appsink'#
+        cap = cv2.VideoCapture(GSTREAMER_PIPELINE0, cv2.CAP_GSTREAMER)
         detector = dlib.get_frontal_face_detector()
         predictor = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 

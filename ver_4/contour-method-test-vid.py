@@ -101,7 +101,7 @@ while True:
     cv2.imshow('right_eye_region', right_eye)
     cv2.imshow('thr', thr)
     cv2.imshow('edged', edged)
-    if cv2.waitKey(60) & 0xff == ord('q'):
+    if cv2.waitKey(30) & 0xff == ord('q'):
         cv2.imwrite('examine.png', right_eye)
         break
         
