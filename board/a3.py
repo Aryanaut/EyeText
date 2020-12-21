@@ -7,5 +7,5 @@ while True:
     cv2.imshow('board', board)
     if cv2.waitKey(1) & 0xff == ord('q'):
         break
-
+        
 cv2.destroyAllWindows()
