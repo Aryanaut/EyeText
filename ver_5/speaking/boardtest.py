@@ -3,14 +3,17 @@ import numpy as np
 import dlib
 
 def nothing(x):
-	pass
+    pass
 
 # definitions
 detector = dlib.get_frontal_face_detector()
 predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 frame = np.zeros((100, 100, 3), np.uint8)
 gray = np.zeros((100, 100, 3), np.uint8)
-cv2.createTrackbar('threshold', 'thr', 0, 255, nothing)
+cv2.namedWindow('frame')
+cv2.createTrackbar('threshold', 'frame', 55, 255, nothing)
+cv2.createTrackbar('dilate', 'frame', 15, 30, nothing)
+cv2.createTrackbar('erode', 'frame', 15, 30, nothing)
 board = np.zeros((297, 420, 3), np.uint8)
 board = cv2.resize(board, None, fx=3, fy=3)
 
@@ -59,9 +62,18 @@ def main():
                     max_x = np.max(left_eye_region[:, 0])
                     min_y = np.min(left_eye_region[:, 1])
                     max_y = np.max(left_eye_region[:, 1])
-                    left_eye = frame[min_y-1: max_y+3, min_x-3 : max_x+1]
-cv2.getTrackbarPos(
-                    cv2.imshow('eye', left_eye)
+                    left_eye = frame[min_y-1: max_y+3, min_x-3 : max_x+1] 
+                    left_eye = cv2.resize(left_eye, None, fx=8, fy=8)
+                    thresh = cv2.getTrackbarPos('threshold', 'frame')
+                    erosion = cv2.getTrackbarPos('erode', 'frame')
+                    dilation = cv2.getTrackbarPos('dilate', 'frame')
+                    gray_eye = cv2.cvtColor(left_eye, cv2.COLOR_BGR2GRAY)
+                    _, thr = cv2.threshold(gray_eye, thresh, 255, cv2.THRESH_BINARY_INV) 
+                    thr = cv2.erode(thr, None, iterations=erosion)
+                    thr = cv2.dilate(thr, None, iterations=dilation)
+                    thr = cv2.medianBlur(thr, 9)
+                    thr = cv2.GaussianBlur(thr, (9, 9), 0)
+                    cv2.imshow('eye', thr)
 
             cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xff == ord('q'):
